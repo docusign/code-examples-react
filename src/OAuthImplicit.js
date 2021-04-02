@@ -56,7 +56,7 @@ class OAuthImplicit {
             return
         } 
 
-        const oauthStateValue = localStorage.getItem(oauthState);
+        const oauthStateValue = window.localStorage.getItem(oauthState);
         const regex = /(#access_token=)(.*)(&expires_in=)(.*)(&token_type=)(.*)(&state=)(.*)/
             , results = regex.exec(hash)
             , accessToken = results[2]
@@ -72,6 +72,7 @@ class OAuthImplicit {
         }
         // hash was good, so erase it from the browser
         window.history.replaceState(null, '', config.DS_APP_URL);
+        window.localStorage.clear(); // clean up
 
         // calculate expires
         let expires = new Date()
@@ -89,13 +90,13 @@ class OAuthImplicit {
             userInfoResponse = await this.fetchUserInfo();
         } catch (e) {
             const msg = `Problem while completing login.\nPlease retry.\nError: ${e.toString()}`;
-            log.error(msg);
+            log(msg);
             toast.error(msg, { autoClose: 10000 });
             return;
         }
         if (!userInfoResponse || !userInfoResponse.ok) {
             const msg = `Problem while completing login.\nPlease retry.\nError: ${userInfoResponse.statusText}`;
-            log.error(msg);
+            log(msg);
             toast.error(msg, { autoClose: 10000 });
             return;
         }
@@ -103,7 +104,7 @@ class OAuthImplicit {
         const defaultAccount = userInfo.accounts.filter((acc) => acc.is_default)[0];
         if (!defaultAccount) {
             const msg = `Problem: the user does not have a default account. Contact DocuSign Customer Service to fix.`;
-            log.error(msg);
+            log(msg);
             toast.error(msg, { autoClose: 10000 });
             return;
         }
@@ -115,7 +116,7 @@ class OAuthImplicit {
         }
         if (!baseUri) {
             const msg = `Problem: no proxy for ${defaultAccount.base_uri}.`;
-            log.error(msg);
+            log(msg);
             toast.error(msg, { autoClose: 10000 });
             return; 
         }
@@ -141,15 +142,14 @@ class OAuthImplicit {
      */
     startLogin() {
         const oauthStateValue = OAuthImplicit.generateId();
-        localStorage.setItem(oauthState, oauthStateValue); // store for when we come back
-        let config = window.config;
+        window.localStorage.setItem(oauthState, oauthStateValue); // store for when we come back
         const url =
-        `${config.DS_IDP}/oauth/auth?` +
+        `${window.config.DS_IDP}/oauth/auth?` +
         `response_type=token&` +
-        `scope=${config.IMPLICIT_SCOPES}&` +
-        `client_id=${config.DS_CLIENT_ID}&` +
+        `scope=${window.config.IMPLICIT_SCOPES}&` +
+        `client_id=${window.config.DS_CLIENT_ID}&` +
         `state=${oauthStateValue}&` +
-        `redirect_uri=${config.DS_APP_URL}`;
+        `redirect_uri=${window.config.DS_APP_URL}`;
 
         window.location = url;
     }

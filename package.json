@@ -1,6 +1,9 @@
 {
   "name": "react-oauth-docusign",
   "version": "0.1.0",
+  "license": "MIT",
+  "description": "React code example with OAuth Implicit grant and DocuSign API",
+  "homepage": "https://github.com/docusign/react-oauth-docusign",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",

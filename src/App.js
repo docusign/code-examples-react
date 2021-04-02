@@ -3,12 +3,13 @@ import Container from 'react-bootstrap/Container';
 import Row from 'react-bootstrap/Row';
 import Col from 'react-bootstrap/Col';
 import Button from 'react-bootstrap/Button';
+import Form from 'react-bootstrap/Form';
 import Jumbotron from 'react-bootstrap/Jumbotron';
 import Navbar from 'react-bootstrap/Navbar';
 import Nav from 'react-bootstrap/Nav';
 import { ToastContainer, toast } from 'react-toastify';
 import OAuthImplicit from './OAuthImplicit';
-
+import DocuSign from './DocuSign';
 import './App.css';
 
 class App extends React.Component {
@@ -32,16 +33,18 @@ class App extends React.Component {
             responseApiRequestsReset: undefined,
             responseSuccess: undefined,
             responseTraceId: undefined,
+            resultsEnvelopeJson: undefined,
             formName: '',
             formEmail: '',  
         };
         this.oAuthImplicit = new OAuthImplicit(this);
-        //this.docusign = new DocuSign(this);
+        this.docusign = new DocuSign(this);
         this.logout = this.logout.bind(this);
         this.startAuthentication = this.startAuthentication.bind(this);
         this.formNameChange = this.formNameChange.bind(this);
         this.formEmailChange = this.formEmailChange.bind(this);
         this.sendEnvelope = this.sendEnvelope.bind(this);
+        this.getEnvelope = this.getEnvelope.bind(this);
     }
   
     async componentDidMount() {
@@ -124,6 +127,7 @@ class App extends React.Component {
         responseApiRequestsReset: undefined,
         responseSuccess: undefined,
         responseTraceId: undefined,
+        resultsEnvelopeJson: undefined,
       });
     }
   
@@ -155,43 +159,77 @@ class App extends React.Component {
     }
   
     async sendEnvelope() {
-      this.setState({
-        responseErrorMsg: undefined,
-        responseEnvelopeId: undefined,
-        responseAvailableApiRequests: undefined,
-        responseApiRequestsReset: undefined,
-        responseSuccess: undefined,
-        responseTraceId: undefined,
-      });
-      if (!this.checkToken()) {
-        return; // Problem! The user needs to login
-      }
-      if (!this.state.formEmail || this.state.formEmail.length < 5) {
-        toast.error("Problem: Enter the signer's email address");
-        return;
-      }
-      if (!this.state.formName || this.state.formName.length < 5) {
-        toast.error("Problem: Enter the signer's name");
-        return;
-      }
-    
-      this.setState({ working: true });
-      const results = await this.docusign.sendEnvelope();
-      const { apiRequestsReset } = results;
-      const responseApiRequestsReset = apiRequestsReset
-        ? new Date(apiRequestsReset) : undefined;
-      this.setState({
-        working: false,
-        responseSuccess: results.success,
-        responseErrorMsg: results.errorMsg,
-        responseEnvelopeId: results.envelopeId,
-        responseAvailableApiRequests: results.availableApiRequests,
-        responseTraceId: results.traceId,
-        responseApiRequestsReset,
-      });
+        this.setState({
+            responseErrorMsg: undefined,
+            responseEnvelopeId: undefined,
+            responseAvailableApiRequests: undefined,
+            responseApiRequestsReset: undefined,
+            responseSuccess: undefined,
+            responseTraceId: undefined,
+            resultsEnvelopeJson: undefined,
+        });
+        if (!this.checkToken()) {
+            return; // Problem! The user needs to login
+        }
+        if (!this.state.formEmail || this.state.formEmail.length < 5) {
+            toast.error("Problem: Enter the signer's email address");
+            return;
+        }
+        if (!this.state.formName || this.state.formName.length < 5) {
+            toast.error("Problem: Enter the signer's name");
+            return;
+        }
+        
+        this.setState({ working: true, workingMessage: "Sending envelope" });
+        const results = await this.docusign.sendEnvelope();
+        const { apiRequestsReset } = results;
+        const responseApiRequestsReset = apiRequestsReset
+            ? new Date(apiRequestsReset) : undefined;
+        this.setState({
+            working: false,
+            responseSuccess: results.success,
+            responseErrorMsg: results.errorMsg,
+            responseEnvelopeId: results.envelopeId,
+            responseAvailableApiRequests: results.availableApiRequests,
+            responseTraceId: results.traceId,
+            responseApiRequestsReset,
+        });
     }
   
-    render() {
+    async getEnvelope() {
+        this.setState({
+          responseErrorMsg: undefined,
+          responseEnvelopeId: undefined,
+          responseAvailableApiRequests: undefined,
+          responseApiRequestsReset: undefined,
+          responseSuccess: undefined,
+          responseTraceId: undefined,
+        });
+        if (!this.checkToken()) {
+          return; // Problem! The user needs to login
+        }
+        if (!this.state.responseEnvelopeId) {
+          toast.error("Problem: First send an envelope");
+          return;
+        }
+      
+        this.setState({ working: true, workingMessage: "Fetching the envelope's status" });
+        const results = await this.docusign.getEnvelope();
+        const { apiRequestsReset } = results;
+        const responseApiRequestsReset = apiRequestsReset
+            ? new Date(apiRequestsReset) : undefined;
+        this.setState({
+            working: false,
+            responseSuccess: results.success,
+            responseErrorMsg: results.errorMsg,
+            responseAvailableApiRequests: results.availableApiRequests,
+            responseTraceId: results.traceId,
+            resultsEnvelopeJson: results.resultsEnvelopeJson,
+            responseApiRequestsReset,
+        });
+      }
+
+      render() {
         let pagebody;
         switch (this.state.page) {
             case 'welcome': // not logged in
@@ -250,66 +288,75 @@ class App extends React.Component {
           }).format(resetTime)
         : undefined;
       return (
-        <Container fluid className='bodyMargin'>
-          <div>
-            <h1>Send an Envelope with an embedded signing ceremony</h1>
-            <form>
-              <label>
-                Name:
-                <input
-                  type="text"
-                  value={this.state.formName}
-                  onChange={this.formNameChange}
-                />
-              </label>
-              <label>
-                Email:
-                <input
-                  type="text"
-                  value={this.state.formEmail}
-                  onChange={this.formEmailChange}
-                />
-              </label>
-            </form>
-            <div>
-              <button type="button" onClick={this.sendEnvelope}>
-                Send Envelope
-              </button>
-            </div>
-            <h1>Results</h1>
-            <h1>
-              {this.state.responseSuccess !== undefined ? (
-                this.state.responseSuccess ? (
-                  <>✅ Success!</>
-                ) : (
-                  <>❌ Problem!</>
-                )
-              ) : null}
-            </h1>
-            {this.state.responseErrorMsg ? (
-              <p>Error message: {this.state.responseErrorMsg}</p>
-            ) : null}
-            {this.state.responseEnvelopeId ? (
-              <p>Envelope ID: {this.state.responseEnvelopeId}</p>
-            ) : null}
-            {this.state.responseAvailableApiRequests ? (
-              <p>
-                Available API requests: {this.state.responseAvailableApiRequests}
-              </p>
-            ) : null}
-            {resetTimeString ? (
-              <p>API requests reset time: {resetTimeString}</p>
-            ) : null}
-            {this.state.responseTraceId ? (
-              <p>
-                Trace ID: {this.state.responseTraceId}. Please include with all
-                customer service questions.
-              </p>
-            ) : null}
-          </div>
-          </Container>
-      );
-    }
+    <Container className='bodyMargin'>
+        <Row>
+            <Col className="col-md-4">
+                <h2>Send an Envelope</h2>
+                <Form>
+                    <Form.Group controlId="formName">
+                        <Form.Label>Name</Form.Label>
+                        <Form.Control type="text" placeholder="Name"
+                            value={this.state.formName}
+                            onChange={this.formNameChange}
+
+                        />
+                    </Form.Group>
+                    <Form.Group controlId="formEmail">
+                        <Form.Label>Email</Form.Label>
+                        <Form.Control type="email" placeholder="Email" 
+                            value={this.state.formEmail}
+                            onChange={this.formEmailChange}
+                        />
+                    </Form.Group>
+
+                    <Button variant="primary" onClick={this.sendEnvelope}>
+                        Send Envelope
+                    </Button>
+                    <Button variant="primary" className='ml-4' onClick={this.getEnvelope}>
+                        Get Envelope Status
+                    </Button>
+                </Form>
+            </Col>
+        </Row>
+        <Row className='mt-4'>
+            <Col>
+                <h2>Results</h2>
+                <h2>
+                    {this.state.responseSuccess !== undefined ? (
+                        this.state.responseSuccess ? (
+                            <>✅ Success!</>
+                        ) : (
+                            <>❌ Problem!</>
+                        )
+                    ) : null}
+                </h2>
+                {this.state.responseErrorMsg ? (
+                    <p>Error message: {this.state.responseErrorMsg}</p>
+                    ) : null}
+                {this.state.responseEnvelopeId ? (
+                    <p>Envelope ID: {this.state.responseEnvelopeId}</p>
+                    ) : null}
+                {this.state.resultsEnvelopeJson ? (
+                    <p><pre>Response: {JSON.stringify(this.state.resultsEnvelopeJson, null, 4)}</pre></p>
+                    ) : null}
+                {this.state.responseAvailableApiRequests ? (
+                    <p>
+                        Available API requests: {this.state.responseAvailableApiRequests}
+                    </p>
+                ) : null}
+                {resetTimeString ? (
+                    <p>API requests reset time: {resetTimeString}</p>
+                    ) : null}
+                    {this.state.responseTraceId ? (
+                    <p>
+                    Trace ID: {this.state.responseTraceId}. Please include with all
+                    customer service questions.
+                    </p>
+                ) : null}
+            </Col>
+        </Row>
+    </Container>
+    )}
   
     Welcome() {
         return (
