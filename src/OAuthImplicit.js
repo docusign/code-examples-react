@@ -85,23 +85,9 @@ class OAuthImplicit {
         // This API method is common for many IdP systems.
         // But the exact format of the response tends to vary.
         // The following works for the DocuSign IdP.
-        let userInfoResponse;
-        try {
-            userInfoResponse = await this.fetchUserInfo();
-        } catch (e) {
-            const msg = `Problem while completing login.\nPlease retry.\nError: ${e.toString()}`;
-            log(msg);
-            toast.error(msg, { autoClose: 10000 });
-            return;
-        }
-        if (!userInfoResponse || !userInfoResponse.ok) {
-            const msg = `Problem while completing login.\nPlease retry.\nError: ${userInfoResponse.statusText}`;
-            log(msg);
-            toast.error(msg, { autoClose: 10000 });
-            return;
-        }
-        const userInfo = await userInfoResponse.json();
-        const defaultAccount = userInfo.accounts.filter((acc) => acc.is_default)[0];
+        const userInfo = await this.fetchUserInfo();
+        const defaultAccountArray = userInfo.accounts.filter((acc) => acc.is_default);
+        const defaultAccount = defaultAccountArray.length > 0 && defaultAccountArray[0];
         if (!defaultAccount) {
             const msg = `Problem: the user does not have a default account. Contact DocuSign Customer Service to fix.`;
             log(msg);
@@ -149,7 +135,25 @@ class OAuthImplicit {
         `scope=${window.config.IMPLICIT_SCOPES}&` +
         `client_id=${window.config.DS_CLIENT_ID}&` +
         `state=${oauthStateValue}&` +
-        `redirect_uri=${window.config.DS_APP_URL}`;
+        `redirect_uri=${encodeURIComponent(window.config.DS_APP_URL)}`;
+
+        window.location = url;
+    }
+
+    /**
+     * logout of the DocuSign IdP. 
+     * If SSO is used, the upstream IdP may not redirect the 
+     * browser back to this app
+     */
+    logout () {
+        const url =
+        `${window.config.DS_IDP}/logout?` +
+        //`response_type=code&` +
+        `response_type=token&` +
+        `scope=${window.config.IMPLICIT_SCOPES}&` +
+        `client_id=${window.config.DS_CLIENT_ID}&` +
+        `redirect_uri=${encodeURIComponent(window.config.DS_APP_URL)}&` +
+        `response_mode=logout_redirect`;
 
         window.location = url;
     }
@@ -157,15 +161,32 @@ class OAuthImplicit {
     /**
      * A relatively common OAuth API endpoint for obtaining information
      * on the user associated with the accessToken
+     * @returns userInfoResponse JSON 
      */
     async fetchUserInfo() {
-        return fetch(`${window.config.DS_AUTHENTICATION}/oauth/userinfo`, {
-            headers: new Headers({
-                Authorization: `Bearer ${this.accessToken}`,
-                Accept: `application/json`,
-                'X-DocuSign-SDK': sdkString,
-            }),
-        })
+        let userInfoResponse
+        try {
+            userInfoResponse = await fetch(
+                `${window.config.DS_AUTHENTICATION}/oauth/userinfo`, {
+                headers: new Headers({
+                    Authorization: `Bearer ${this.accessToken}`,
+                    Accept: `application/json`,
+                    'X-DocuSign-SDK': sdkString,
+                }),
+            })
+        } catch (e) {
+            const msg = `Problem while completing login.\nPlease retry.\nError: ${e.toString()}`;
+            log(msg);
+            toast.error(msg, { autoClose: 10000 });
+            return null;
+        }
+        if (!userInfoResponse || !userInfoResponse.ok) {
+            const msg = `Problem while completing login.\nPlease retry.\nError: ${userInfoResponse.statusText}`;
+            log(msg);
+            toast.error(msg, { autoClose: 10000 });
+            return null;
+        }
+        return await userInfoResponse.json();
     }
 
     /**

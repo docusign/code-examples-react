@@ -72,7 +72,7 @@ class DocuSign {
             },
             documents: [
                 {
-                    name: 'Example document.pdf',
+                    name: docName,
                     fileExtension: 'pdf',
                     documentId: '1',
                     documentBase64: base64File,

@@ -94,7 +94,8 @@ class App extends React.Component {
       this.clearAuth();
       this.clearState();
       this.setState({ page: 'welcome' });
-      toast.success('You have logged out.', { autoClose: 1000 });
+      toast.success('You have logged out.', { autoClose: 5000 });
+      this.oAuthImplicit.logout();
     }
   
     /**
