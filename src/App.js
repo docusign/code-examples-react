@@ -39,6 +39,8 @@ class App extends React.Component {
         };
         this.oAuthImplicit = new OAuthImplicit(this);
         this.docusign = new DocuSign(this);
+
+        // bind <this> for methods called by React via buttons, etc
         this.logout = this.logout.bind(this);
         this.startAuthentication = this.startAuthentication.bind(this);
         this.formNameChange = this.formNameChange.bind(this);
@@ -47,20 +49,21 @@ class App extends React.Component {
         this.getEnvelope = this.getEnvelope.bind(this);
     }
   
+    /**
+     * Starting up--if our URL includes a hash, check it to see if 
+     * it's the OAuth response
+     */
     async componentDidMount() {
         const hash = window.location.hash;
         if (!hash) {return}
         // possible OAuth response
-        this.setState({working: true, workingMessage: 'Authenticating'});
+        this.setState({working: true, workingMessage: 'Loggin in'});
         await this.oAuthImplicit.completeLogin();
         this.setState({working: false});        
     }
-  
-    componentWillUnmount() {
-    }
-      
+        
     startAuthentication() {
-      this.oAuthImplicit.startLogin();
+        this.oAuthImplicit.startLogin();
     }
     
     /**
@@ -68,20 +71,20 @@ class App extends React.Component {
      * @returns boolean accessTokenIsGood
      */
     checkToken() {
-      if (
-        !this.state.accessToken ||
-        this.state.expires === undefined ||
-        new Date() > this.state.expires
-      ) {
-        // Need new login. Only clear auth, don't clear the state (leave form contents);
-        this.clearAuth();
-        this.setState({ page: 'welcome', working: false });
-        toast.error('Your login session has ended.\nPlease login again', {
-          autoClose: 8000,
-        });
-        return false;
-      }
-      return true;
+        if (
+            !this.state.accessToken ||
+            this.state.expires === undefined ||
+            new Date() > this.state.expires
+        ) {
+            // Need new login. Only clear auth, don't clear the state (leave form contents);
+            this.clearAuth();
+            this.setState({ page: 'welcome', working: false });
+            toast.error('Your login session has ended.\nPlease login again', {
+            autoClose: 8000,
+            });
+            return false;
+        }
+        return true;
     }
   
     /**
@@ -91,45 +94,45 @@ class App extends React.Component {
      * the login session.
      */
     logout() {
-      this.clearAuth();
-      this.clearState();
-      this.setState({ page: 'welcome' });
-      toast.success('You have logged out.', { autoClose: 5000 });
-      this.oAuthImplicit.logout();
+        this.clearAuth();
+        this.clearState();
+        this.setState({ page: 'welcome' });
+        toast.success('You have logged out.', { autoClose: 5000 });
+        this.oAuthImplicit.logout();
     }
   
     /**
      * Clear authentication-related state
      */
     clearAuth() {
-      this.setState({
-        accessToken: undefined,
-        expires: undefined,
-        accountId: undefined,
-        externalAccountId: undefined,
-        accountName: undefined,
-        baseUri: undefined,
-        name: undefined,
-        email: undefined,
-      })
+        this.setState({
+            accessToken: undefined,
+            expires: undefined,
+            accountId: undefined,
+            externalAccountId: undefined,
+            accountName: undefined,
+            baseUri: undefined,
+            name: undefined,
+            email: undefined,
+        })
     }
   
     /**
      * Clear the app's form and related state
      */
     clearState() {
-      this.setState({
-        formName: '',
-        formEmail: '',
-        working: false,
-        responseErrorMsg: undefined,
-        responseEnvelopeId: undefined,
-        responseAvailableApiRequests: undefined,
-        responseApiRequestsReset: undefined,
-        responseSuccess: undefined,
-        responseTraceId: undefined,
-        resultsEnvelopeJson: undefined,
-      });
+        this.setState({
+            formName: '',
+            formEmail: '',
+            working: false,
+            responseErrorMsg: undefined,
+            responseEnvelopeId: undefined,
+            responseAvailableApiRequests: undefined,
+            responseApiRequestsReset: undefined,
+            responseSuccess: undefined,
+            responseTraceId: undefined,
+            resultsEnvelopeJson: undefined,
+        });
     }
   
     /**
@@ -138,25 +141,25 @@ class App extends React.Component {
      * @param results
      */
     oAuthResults(results) {
-      this.setState({
-        accessToken: results.accessToken, expires: results.expires, 
-        name: results.name, externalAccountId: results.externalAccountId,
-        email: results.email, accountId: results.accountId,
-        accountName: results.accountName, baseUri: results.baseUri,
-        page: 'loggedIn',
-        formName: results.name, // default: set to logged in user
-        formEmail: results.email,
-      });
-  
-      toast.success(`Welcome ${results.name}, you are now logged in`);
+        this.setState({
+            accessToken: results.accessToken, expires: results.expires, 
+            name: results.name, externalAccountId: results.externalAccountId,
+            email: results.email, accountId: results.accountId,
+            accountName: results.accountName, baseUri: results.baseUri,
+            page: 'loggedIn',
+            formName: results.name, // default: set to logged in user
+            formEmail: results.email,
+        });
+    
+        toast.success(`Welcome ${results.name}, you are now logged in`);
     }
   
     formNameChange(event) {
-      this.setState({ formName: event.target.value });
+        this.setState({ formName: event.target.value });
     }
   
     formEmailChange(event) {
-      this.setState({ formEmail: event.target.value });
+        this.setState({ formEmail: event.target.value });
     }
   
     async sendEnvelope() {
@@ -184,8 +187,8 @@ class App extends React.Component {
         this.setState({ working: true, workingMessage: "Sending envelope" });
         const results = await this.docusign.sendEnvelope();
         const { apiRequestsReset } = results;
-        const responseApiRequestsReset = apiRequestsReset
-            ? new Date(apiRequestsReset) : undefined;
+        const responseApiRequestsReset = apiRequestsReset ? 
+            new Date(apiRequestsReset) : undefined;
         this.setState({
             working: false,
             responseSuccess: results.success,
@@ -199,19 +202,19 @@ class App extends React.Component {
   
     async getEnvelope() {
         this.setState({
-          responseErrorMsg: undefined,
-          responseEnvelopeId: undefined,
-          responseAvailableApiRequests: undefined,
-          responseApiRequestsReset: undefined,
-          responseSuccess: undefined,
-          responseTraceId: undefined,
+            responseErrorMsg: undefined,
+            responseEnvelopeId: undefined,
+            responseAvailableApiRequests: undefined,
+            responseApiRequestsReset: undefined,
+            responseSuccess: undefined,
+            responseTraceId: undefined,
         });
         if (!this.checkToken()) {
-          return; // Problem! The user needs to login
+            return; // Problem! The user needs to login
         }
         if (!this.state.responseEnvelopeId) {
-          toast.error("Problem: First send an envelope");
-          return;
+            toast.error("Problem: First send an envelope");
+            return;
         }
       
         this.setState({ working: true, workingMessage: "Fetching the envelope's status" });
@@ -228,9 +231,14 @@ class App extends React.Component {
             resultsEnvelopeJson: results.resultsEnvelopeJson,
             responseApiRequestsReset,
         });
-      }
+    }
 
-      render() {
+    /**
+     * Render this component
+     */
+    render() {
+        // Just two pages with a common header. 
+        // Choose the body of the page:
         let pagebody;
         switch (this.state.page) {
             case 'welcome': // not logged in
@@ -242,6 +250,8 @@ class App extends React.Component {
             default:
                 pagebody = this.Welcome();
         };
+
+        // Compute the name block for the top nav section
         let nameBlock;
         if (this.state.accessToken) {
             nameBlock = (
@@ -257,17 +267,10 @@ class App extends React.Component {
                 nameBlock = null;
             }
 
-        return (
-            <>
-            <Navbar fixed="top" bg="primary" variant="dark" >
-                <Navbar.Brand>DocuSign Code Example</Navbar.Brand>
-                <Navbar.Toggle />
-                <Navbar.Collapse className="justify-content-end">
-                    {nameBlock}
-                </Navbar.Collapse>
-            </Navbar>
-            <ToastContainer />
-            <Container fluid className='bodyMargin' style={{ display: this.state.working ? 'block' : 'none' }}>
+        // The spinner
+        const spinner = (
+            <Container fluid className='bodyMargin' 
+                style={{ display: this.state.working ? 'block' : 'none' }}>
                 <Row className='justify-content-center'>
                     <div className="spinner" />
                 </Row>
@@ -275,6 +278,18 @@ class App extends React.Component {
                     <h3>{this.state.workingMessage}…</h3>
                 </Row>
             </Container>
+        )
+
+        // The complete page:
+        return (
+            <>
+            <Navbar fixed="top" bg="primary" variant="dark" >
+                <Navbar.Brand>DocuSign Code Example</Navbar.Brand>
+                <Navbar.Toggle />
+                <Navbar.Collapse className="justify-content-end">{nameBlock}</Navbar.Collapse>
+            </Navbar>
+            <ToastContainer />
+            {spinner}
             {pagebody}
             </>
         )
