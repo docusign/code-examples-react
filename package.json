@@ -1,10 +1,10 @@
 {
-  "name": "react-oauth-docusign",
+  "name": "react-oauth-redirect-docusign",
   "version": "0.1.0",
   "license": "MIT",
-  "description": "React code example with OAuth Implicit grant and DocuSign API",
+  "description": "React code example with OAuth Implicit grant and DocuSign API. It redirects to the OAuth IdP.",
   "homepage_comment": "<homepage> is used by the build process as the build target URL path",
-  "homepage": "react-oauth-docusign/build",
+  "homepage": "react-oauth-redirect-docusign/build",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",
