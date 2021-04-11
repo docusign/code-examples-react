@@ -4,6 +4,7 @@
  */
 import { toast } from 'react-toastify';
 
+const oauthResponseHtml = 'oauthResponse.html'; // only used for new tab auth
 const expirationBuffer = 10 * 60; // 10 minute buffer
 const sdkString = 'codeEg_react';
 const urlFrag = '/restapi/v2.1'; // DocuSign specific
@@ -34,15 +35,15 @@ class OAuthImplicit {
     //
     constructor(app) {
         this.app = app;
+        this.oauthWindow = null; // only used for new tab auth
     }
 
     /**
      * Handle incoming OAuth Implicit grant response
      */
-    async completeLogin() {
+    async receiveHash(hash) {
         const config = window.config;
-        const hash = window.location.hash
-            , accessTokenFound = hash && hash.substring(0,14) === '#access_token=';
+        const accessTokenFound = hash && hash.substring(0,14) === '#access_token=';
         if (!accessTokenFound) {return} // EARLY RETURN
 
         // Avoiding an injection attack: check that the hash only includes expected characters
@@ -70,9 +71,17 @@ class OAuthImplicit {
             console.error(`OAuth state mismatch!! Expected state: ${oauthStateValue}; received state: ${incomingState}`);
             return // EARLY RETURN
         }
-        // hash was good, so erase it from the browser
-        window.history.replaceState(null, '', config.DS_APP_URL);
         window.localStorage.clear(); // clean up
+
+        if (config.DS_REDIRECT_AUTHENTICATION) {
+            // Using redirect the window authentication:
+            // hash was good, so erase it from the browser
+            window.history.replaceState(null, '', config.DS_APP_URL);
+        } else {
+            // Using new tab authentication:
+            // close the tab that was used for authentication
+            if (this.oauthWindow) {this.oauthWindow.close()}
+        }
 
         // calculate expires
         let expires = new Date()
@@ -96,10 +105,8 @@ class OAuthImplicit {
         }
         // 
         // Need to select the right proxy for the API call
-        let baseUri;
-        if (defaultAccount.base_uri === config.DS_API_CORS_PROXY_FOR) {
-            baseUri = config.DS_API_CORS_PROXY;
-        }
+        // update the baseUri setting
+        let baseUri = config.DS_API_CORS_PROXIES[defaultAccount.base_uri];
         if (!baseUri) {
             const msg = `Problem: no proxy for ${defaultAccount.base_uri}.`;
             log(msg);
@@ -118,26 +125,44 @@ class OAuthImplicit {
             accountId: defaultAccount.account_id,
             externalAccountId,
             accountName: defaultAccount.account_name,
-            baseUri: defaultAccount.base_uri,
+            baseUri: baseUri,
         })
     }
 
     /**
      * Start the login flow by computing the Implicit grant URL
-     * and redirecting to the URL for the user.
+     * and either redirecting to the URL for the user or
+     * creating a new browser tab for the authentication flow
      */
     startLogin() {
+        const config = window.config;
         const oauthStateValue = OAuthImplicit.generateId();
         window.localStorage.setItem(oauthState, oauthStateValue); // store for when we come back
-        const url =
-        `${window.config.DS_IDP}/oauth/auth?` +
-        `response_type=token&` +
-        `scope=${window.config.IMPLICIT_SCOPES}&` +
-        `client_id=${window.config.DS_CLIENT_ID}&` +
-        `state=${oauthStateValue}&` +
-        `redirect_uri=${encodeURIComponent(window.config.DS_APP_URL)}`;
+        let redirectUrl;
+        if (config.DS_REDIRECT_AUTHENTICATION) {
+            // Using redirect the window authentication:
+            redirectUrl = config.DS_APP_URL;
+        } else {
+            // Using new tab authentication
+            redirectUrl = `${config.DS_APP_URL}/${oauthResponseHtml}`;
+        }    
 
-        window.location = url;
+        const url =
+            `${window.config.DS_IDP}/oauth/auth?` +
+            `response_type=token&` +
+            `scope=${window.config.IMPLICIT_SCOPES}&` +
+            `client_id=${window.config.DS_CLIENT_ID}&` +
+            `state=${oauthStateValue}&` +
+            `redirect_uri=${encodeURIComponent(redirectUrl)}`;
+
+        if (config.DS_REDIRECT_AUTHENTICATION) {
+            // Using redirect the window authentication:
+            window.location = url;
+        } else {
+            // Using new tab authentication:
+            // Create a new tab for authentication
+            this.oauthWindow = window.open(url, "_blank");
+        }    
     }
 
     /**
@@ -146,15 +171,14 @@ class OAuthImplicit {
      * browser back to this app
      */
     logout () {
+        const config = window.config;
         const url =
-        `${window.config.DS_IDP}/logout?` +
-        //`response_type=code&` +
-        `response_type=token&` +
-        `scope=${window.config.IMPLICIT_SCOPES}&` +
-        `client_id=${window.config.DS_CLIENT_ID}&` +
-        `redirect_uri=${encodeURIComponent(window.config.DS_APP_URL)}&` +
-        `response_mode=logout_redirect`;
-
+            `${window.config.DS_IDP}/logout?` +
+            `response_type=token&` +
+            `scope=${config.IMPLICIT_SCOPES}&` +
+            `client_id=${config.DS_CLIENT_ID}&` +
+            `redirect_uri=${encodeURIComponent(config.DS_APP_URL)}&` +
+            `response_mode=logout_redirect`;
         window.location = url;
     }
 
@@ -167,7 +191,7 @@ class OAuthImplicit {
         let userInfoResponse
         try {
             userInfoResponse = await fetch(
-                `${window.config.DS_AUTHENTICATION}/oauth/userinfo`, {
+                `${window.config.DS_IDP}/oauth/userinfo`, {
                 headers: new Headers({
                     Authorization: `Bearer ${this.accessToken}`,
                     Accept: `application/json`,

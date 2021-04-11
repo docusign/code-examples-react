@@ -4,7 +4,7 @@
   "license": "MIT",
   "description": "React code example with OAuth Implicit grant and DocuSign API. It redirects to the OAuth IdP.",
   "homepage_comment": "<homepage> is used by the build process as the build target URL path",
-  "homepage": "react-oauth-redirect-docusign/build",
+  "homepage": "react-oauth-docusign/build",
   "private": true,
   "dependencies": {
     "@testing-library/jest-dom": "^5.11.4",

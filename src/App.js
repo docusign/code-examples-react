@@ -47,6 +47,7 @@ class App extends React.Component {
         this.formEmailChange = this.formEmailChange.bind(this);
         this.sendEnvelope = this.sendEnvelope.bind(this);
         this.getEnvelope = this.getEnvelope.bind(this);
+        this.receiveMessage = this.receiveMessage.bind(this);
     }
   
     /**
@@ -54,13 +55,48 @@ class App extends React.Component {
      * it's the OAuth response
      */
     async componentDidMount() {
-        const hash = window.location.hash;
-        if (!hash) {return}
-        // possible OAuth response
-        this.setState({working: true, workingMessage: 'Loggin in'});
-        await this.oAuthImplicit.completeLogin();
-        this.setState({working: false});        
+        const config = window.config;
+        // if the url has a query parameter of ?error=logout_request (from a logout operation) 
+        // then remove it
+        if (window.location.search && window.location.search === '?error=logout_request') {
+            window.history.replaceState(null, '', config.DS_APP_URL);
+        }
+
+        if (config.DS_REDIRECT_AUTHENTICATION) {
+            const hash = window.location.hash;
+            if (!hash) {return}
+            // possible OAuth response
+            this.setState({working: true, workingMessage: 'Logging in'});
+            await this.oAuthImplicit.receiveHash(hash);
+            this.setState({working: false});
+        } else {
+            // await authentication via the new tab
+            window.addEventListener("message", this.receiveMessage, false);
+        }
     }
+
+    /**
+     * Receive message from a child .
+     * This method is only used if authentication is done
+     * in a new tab. See file public/oauthResponse.html
+     * @param {object} e 
+     */
+    async receiveMessage(e) {
+        const rawSource = e && e.data && e.data.source
+            , ignore = {'react-devtools-inject-backend': true,
+                        'react-devtools-content-script': true,
+                        'react-devtools-detector': true,
+                        'react-devtools-bridge': true}
+            , source = (rawSource && !ignore[rawSource]) ? rawSource : false
+            ;
+        if (!source) {return}; // Ignore if no source field
+        if (source === 'oauthResponse') {
+            this.setState({working: true, workingMessage: 'Logging in'});
+            const hash = e.data && e.data.hash;
+            await this.oAuthImplicit.receiveHash(hash);
+            this.setState ({working: false});
+        }
+    }    
         
     startAuthentication() {
         this.oAuthImplicit.startLogin();

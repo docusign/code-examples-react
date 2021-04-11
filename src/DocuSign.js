@@ -82,7 +82,7 @@ class DocuSign {
 
         try {
         const url =
-            `${window.config.DS_API_CORS_PROXY}${urlFrag}` +
+            `${this.app.state.baseUri}${urlFrag}` +
             `/accounts/${this.app.state.accountId}` +
             `/envelopes`;
         const response = await fetch(url, {
@@ -152,7 +152,7 @@ class DocuSign {
      async getEnvelope() {
         try {
         const url =
-            `${window.config.DS_API_CORS_PROXY}${urlFrag}` +
+            `${this.app.state.baseUri}${urlFrag}` +
             `/accounts/${this.app.state.accountId}` +
             `/envelopes/${this.app.state.responseEnvelopeId}`;
         const response = await fetch(url, {
