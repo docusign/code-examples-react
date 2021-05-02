@@ -1,8 +1,9 @@
 # react-oauth-docusign example code
 
 ## Installation
+* Install Node.js v12, yarn, and npm.
 * Clone, fork, or download as a zip file.
-* Enter the directory and type `yarn install`
+* Enter the app's directory and type `yarn install`.
 * After configuration (see below), type `yarn start` to start the 
   app in development mode.
 
@@ -22,6 +23,17 @@ Add one or two Redirect URIs to the integration key:
 * For redirecting to the IdP, add a Redirect URI that is the same as the application's URL.
 * For opening a new tab to the IdP, add a Redirect URI that is the application's URL with
   `/oauthResponse.html` appended.
+
+### Private CORS proxies
+Create one or more private CORS proxies. See the 
+[blog post](https://www.docusign.com/blog/dsdev-building-single-page-applications-with-docusign-and-cors-part-2).
+For nginx, see the [CORS proxy configuration file](https://github.com/docusign/blog-create-a-CORS-gateway/blob/master/nginx_site_file).
+
+You will add the proxy address to the config.js file (see below).
+
+Ask your DocuSign support contact to add your company
+name to PORTFOLIO-1100. This will help raise the prioritization
+of adding CORS to the eSignature API.
 
 ### Configuration file
 Copy the file `public/config_example.js` to `public/config.js` and fill in the settings.
