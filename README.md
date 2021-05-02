@@ -1,4 +1,35 @@
+# react-oauth-docusign example code
+
+## Installation
+* Clone, fork, or download as a zip file.
+* Enter the directory and type `yarn install`
+* After configuration (see below), type `yarn start` to start the 
+  app in development mode.
+
+## Configuration
+Create an integration key (client id) that enables **Implicit Grant**.
+The integration key does not need a secret nor an RSA private key.
+
+Decide if you want the application to redirect its browser tab for authentication
+to the DocuSign Identity Provider (IdP) or if it should open a new tab for authentication. 
+
+Decide what the application's URL is. For development, the default 
+application URL is
+`http://localhost:3000/react-oauth-docusign/build`
+
+### Redirect URIs
+Add one or two Redirect URIs to the integration key:
+* For redirecting to the IdP, add a Redirect URI that is the same as the application's URL.
+* For opening a new tab to the IdP, add a Redirect URI that is the application's URL with
+  `/oauthResponse.html` appended.
+
+### Configuration file
+Copy the file `public/config_example.js` to `public/config.js` and fill in the settings.
+
+The config.js file should not be stored with the repository.
+
 # Getting Started with Create React App
+(The following is the default Readme for apps built with the Create React App utility.)
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
