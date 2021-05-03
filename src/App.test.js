@@ -1,8 +1,18 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
+import React from 'react';
+import ReactDOM from 'react-dom';
 
-test('renders learn react link', () => {
+test('renders login button', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  const loginEls = screen.getAllByText(/Login/i);
+  //expect(linkElement).toBeInTheDocument();
+  expect(loginEls.length).toEqual(2);
 });
+
+it('renders without crashing', () => {
+    const div = document.createElement('div');
+    ReactDOM.render(<App />, div);
+    ReactDOM.unmountComponentAtNode(div);
+  });
+  

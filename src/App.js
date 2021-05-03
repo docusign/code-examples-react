@@ -62,7 +62,7 @@ class App extends React.Component {
             window.history.replaceState(null, '', config.DS_APP_URL);
         }
 
-        if (config.DS_REDIRECT_AUTHENTICATION) {
+        if (config?.DS_REDIRECT_AUTHENTICATION) {
             const hash = window.location.hash;
             if (!hash) {return}
             // possible OAuth response
