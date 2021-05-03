@@ -29,9 +29,11 @@ Create one or more private CORS proxies. See the
 [blog post](https://www.docusign.com/blog/dsdev-building-single-page-applications-with-docusign-and-cors-part-2).
 For nginx, see the [CORS proxy configuration file](https://github.com/docusign/blog-create-a-CORS-gateway/blob/master/nginx_site_file).
 
-You will add the proxy address to the config.js file (see below).
+You will add the proxy address or addresses to 
+the config.js file (see below).
 
-Ask your DocuSign support contact to add your company
+If you'd like to use CORS in production, 
+ask your DocuSign support contact to add your company
 name to PORTFOLIO-1100. This will help raise the prioritization
 of adding CORS to the eSignature API.
 
@@ -39,6 +41,12 @@ of adding CORS to the eSignature API.
 Copy the file `public/config_example.js` to `public/config.js` and fill in the settings.
 
 The config.js file should not be stored with the repository.
+
+## Pull Requests and Questions
+Pull requests (PRs) are welcomed, all PRs must use the MIT license.
+
+If you have questions about this code example, please 
+ask on StackOverflow, using the `docusignapi` tag.
 
 # Getting Started with Create React App
 (The following is the default Readme for apps built with the Create React App utility.)

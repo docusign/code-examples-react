@@ -47,7 +47,7 @@ class OAuthImplicit {
         if (!accessTokenFound) {return} // EARLY RETURN
 
         // Avoiding an injection attack: check that the hash only includes expected characters
-        // An example: #access_token=eyJ0eXAiOiJNVCIsImFsZyI6IlJTMjU2Iiwia2lkIjoiNjgxODVmZjEtNGU1MS00Y2U5LWFmMWMtNjg5ODEyMjAzMzE3In0.AQkAAAABAAUABwCA5xeRWULXSAgAgCc7n5xC10gCAHR-9s2Nn_hNv77uMjz2XvIVAAEAAAAYAAEAAAAFAAAADQAkAAAAN2ZiMmFhYmUtYjI3NC00MDQzLWIyYTItY2M1NDg0MGRmMzJkMACA5xeRWULXSBIAAQAAAAsAAABpbnRlcmFjdGl2ZQ.eUVqrmf4wZ8EQRqNPDI2AumqbNVrxlxCD0uq8YCWNDAvC1lAakTdInXUBLMMsjN-NxXChP7UX8VF870-kSsiR9izXj55-YjTHveCyEdJ-V9iSotZpHLZ58Y2ScGF4mreBmZqFX2jVed43NY71b-qAlghTP7VfMulP0KnpYwLWLllNSB-OIlg68tsVhbhiUayC5fLHRv0mm1lB9LCjf5GzeP3TJLTkQ5NiAqEmEGqdmo4r8BkRxxW4X1hBHq2iD3E2cMugdOpMFamUFRw3vHCHdDiJxYMy6RO8ogtpE98n915hj4jTc2wbtRnJqwiDA90mo-eq4pL5uzw1wKVQLqF6A&expires_in=28800&token_type=bearer&state=e3f287fbe932b904a660282242bfc58bd6a67fe2
+        // An example: #access_token=eyJ0eXA...[Access tokens can be 610 characters or longer]...wKVQLqF6A&expires_in=28800&token_type=bearer&state=e3f287fbe93...c58bd6a67fe2
         // No characters other than #.-&=_ a-z A-Z 0-9 (no spaces)
         const hashRegex = /[^#.\-&=_a-zA-Z0-9]/;
         if (hash.search(hashRegex) !== -1) {
