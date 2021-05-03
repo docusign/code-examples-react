@@ -1,4 +1,4 @@
-# react-oauth-docusign example code
+# code-examples-react
 
 ## Installation
 * Install Node.js v12, yarn, and npm.
@@ -16,7 +16,7 @@ to the DocuSign Identity Provider (IdP) or if it should open a new tab for authe
 
 Decide what the application's URL is. For development, the default 
 application URL is
-`http://localhost:3000/react-oauth-docusign/build`
+`http://localhost:3000/code-examples-react/build`
 
 ### Redirect URIs
 Add one or two Redirect URIs to the integration key:
