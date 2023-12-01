@@ -106,7 +106,7 @@ class OAuthImplicit {
         // 
         // Need to select the right proxy for the API call
         // update the baseUri setting
-        let baseUri = config.DS_API_CORS_PROXIES[defaultAccount.base_uri];
+        let baseUri = config.DS_BASE_URI;
         if (!baseUri) {
             const msg = `Problem: no proxy for ${defaultAccount.base_uri}.`;
             log(msg);

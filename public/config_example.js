@@ -25,14 +25,8 @@ config.IMPLICIT_SCOPES='signature';
 // DocuSign Identity server
 config.DS_IDP='https://account-d.docusign.com';
 
-// Your private API CORS proxies
-// Add additional entries for the demo and prod platforms that your 
-// users' accounts need
-config.DS_API_CORS_PROXIES= {
-    'https://na2.docusign.net' : 'https://xxxproxy.example.com',
-    'https://na3.docusign.net' : 'https://xxxproxy.example.com',
-    'https://demo.docusign.net': 'https://xxxproxy.example.com',
-}
+// Your DocuSign base URI 
+config.DS_BASE_URI = 'https://demo.docusign.net';
 
 // redirect authentication? 
 // true: the app redirects to the IdP
