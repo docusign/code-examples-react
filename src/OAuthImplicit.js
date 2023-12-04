@@ -49,7 +49,7 @@ class OAuthImplicit {
         // Avoiding an injection attack: check that the hash only includes expected characters
         // An example: #access_token=eyJ0eXA...[Access tokens can be 610 characters or longer]...wKVQLqF6A&expires_in=28800&token_type=bearer&state=e3f287fbe93...c58bd6a67fe2
         // No characters other than #.-&=_ a-z A-Z 0-9 (no spaces)
-        const hashRegex = /[^#.\-&=_a-zA-Z0-9]/;
+        const hashRegex = /[^#.%\-&=_a-zA-Z0-9]/;
         if (hash.search(hashRegex) !== -1) {
             console.error (`Potential XSS attack via fragment (#) value: ${hash}`);
             toast.error('Potential XSS attack via the fragment value. Please login again.', {
